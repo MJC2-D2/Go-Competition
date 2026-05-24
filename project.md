@@ -10,8 +10,8 @@ learning environment.
 - Allow trusted people to submit Python player code.
 - Run matches between two selected players.
 - Store completed games so they can be replayed later.
-- Provide a React frontend for running games, browsing history, replaying moves,
-  and viewing league standings.
+- Provide a browser frontend for running games, browsing history, replaying
+  moves, and viewing league standings.
 - Provide a simple player API that is approachable for people new to Python.
 
 ## System Design
@@ -40,12 +40,14 @@ Recommended backend structure:
 - `players/` - submitted player modules.
 - `runner/` - game loop and match execution.
 - `storage/` - reading and writing game files.
-- `api/` - HTTP API used by the React frontend.
+- `api/` - HTTP API and static file server used by the browser frontend.
 - `examples/` - example players and learning material.
 
 ### Frontend
 
-The frontend is implemented in React.
+The frontend is a static browser application served by the Python backend. It
+uses plain HTML, CSS, and JavaScript so the first version does not require
+Node.js, npm, or a frontend build step.
 
 It should provide these main views:
 

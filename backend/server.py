@@ -1,10 +1,11 @@
 import json
+import mimetypes
 import queue
 import threading
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from .league import build_league
 from .player_loader import PlayerLoader
@@ -15,6 +16,7 @@ from .storage import GameStorage
 ROOT = Path(__file__).resolve().parents[1]
 PLAYERS_DIR = ROOT / "players"
 DATA_DIR = ROOT / "data"
+FRONTEND_DIR = ROOT / "frontend"
 
 
 @dataclass
@@ -164,7 +166,10 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path == "/api/health":
             return self.write_json({"status": "ok"})
 
-        self.write_json({"error": "Not found"}, status=404)
+        if path.startswith("/api/"):
+            return self.write_json({"error": "Not found"}, status=404)
+
+        self.serve_static(path)
 
     def do_POST(self):
         parsed = urlparse(self.path)
@@ -222,13 +227,34 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
+    def serve_static(self, request_path):
+        if request_path in ("", "/"):
+            request_path = "/index.html"
+
+        relative_path = unquote(request_path).lstrip("/")
+        requested = (FRONTEND_DIR / relative_path).resolve()
+        frontend_root = FRONTEND_DIR.resolve()
+
+        if frontend_root not in requested.parents and requested != frontend_root:
+            return self.write_json({"error": "Not found"}, status=404)
+        if not requested.exists() or not requested.is_file():
+            return self.write_json({"error": "Not found"}, status=404)
+
+        content = requested.read_bytes()
+        content_type = mimetypes.guess_type(requested.name)[0] or "application/octet-stream"
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(content)))
+        self.end_headers()
+        self.wfile.write(content)
+
     def log_message(self, format, *args):
         return
 
 
 def run(host="127.0.0.1", port=8000):
     server = ThreadingHTTPServer((host, port), ApiHandler)
-    print(f"Backend API running at http://{host}:{port}")
+    print(f"Go Competition running at http://{host}:{port}")
     server.serve_forever()
 
 

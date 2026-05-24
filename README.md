@@ -1,17 +1,15 @@
 # Go Competition
 
 A local 9x9 Go competition app where Python player modules compete against each
-other. The backend runs games, stores replays as JSON, and exposes an HTTP API.
-The frontend is a React app for queueing matches, browsing history, replaying
-games, and viewing the league table.
+other. The Python program runs games, stores replays as JSON, exposes an HTTP
+API, and serves the browser interface.
 
 ## Requirements
 
 - Python 3.10 or newer
-- Node.js and npm
 
-The backend uses only the Python standard library. The frontend uses Vite,
-React, and lucide-react.
+The application uses only the Python standard library. There is no npm, Node.js,
+or frontend build step.
 
 ## Project Layout
 
@@ -19,13 +17,13 @@ React, and lucide-react.
 backend/              Python game engine, runner, storage, API server
 players/              Submitted player modules
 examples/             Template/example player code
-frontend/             React frontend
+frontend/             Static browser app served by Python
 tests/                Backend unit tests
 data/games/           Generated game replay files
 project.md            Project design document
 ```
 
-## Run The Backend
+## Run The App
 
 From the project root:
 
@@ -33,11 +31,13 @@ From the project root:
 python3 -m backend.main
 ```
 
-The API runs at:
+Open:
 
 ```text
 http://127.0.0.1:8000
 ```
+
+The same Python server provides both the browser app and the API.
 
 Useful endpoints:
 
@@ -46,22 +46,6 @@ Useful endpoints:
 - `GET /api/jobs`
 - `GET /api/games`
 - `GET /api/league`
-
-## Run The Frontend
-
-In a second terminal:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open:
-
-```text
-http://127.0.0.1:5173
-```
 
 ## Run Tests
 
