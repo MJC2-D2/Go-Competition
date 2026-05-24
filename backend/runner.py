@@ -42,20 +42,28 @@ class GameRunner:
         for turn_number in range(1, max_move_count + 1):
             color = BLACK if turn_number % 2 == 1 else WHITE
             player = players_by_color[color]
-            available_moves = legal_moves(board, color, previous_positions)
 
-            def preview_move(move):
-                if move not in available_moves:
+            def get_legal_moves(move_color, current_board):
+                return tuple(legal_moves(current_board, move_color, previous_positions))
+
+            def preview_move(move_color, current_board, move):
+                current_legal_moves = get_legal_moves(move_color, current_board)
+                if move not in current_legal_moves:
                     raise ValueError("Only legal moves can be previewed.")
-                preview_board, _ = play_move(board, color, move, previous_positions)
+                preview_board, _ = play_move(
+                    current_board,
+                    move_color,
+                    move,
+                    previous_positions,
+                )
                 return preview_board
 
             try:
                 selected_move = player.module.select_move(
                     color,
                     board,
-                    tuple(available_moves),
                     preview_move,
+                    get_legal_moves,
                 )
             except Exception as exc:
                 player_error = {
@@ -70,6 +78,8 @@ class GameRunner:
 
             if selected_move is not None and isinstance(selected_move, list):
                 selected_move = tuple(selected_move)
+
+            available_moves = get_legal_moves(color, board)
 
             if selected_move is None:
                 consecutive_passes += 1

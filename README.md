@@ -68,7 +68,9 @@ def version():
     return "1.0"
 
 
-def select_move(color, board, legal_moves, preview_move):
+def select_move(color, board, preview_move, get_legal_moves):
+    legal_moves = get_legal_moves(color, board)
+
     if not legal_moves:
         return None
 
@@ -81,6 +83,8 @@ Rules for player code:
 - `board` is an immutable tuple of tuples.
 - Empty points are `0`, white stones are `1`, and black stones are `2`.
 - Moves use zero-based `(row, col)` coordinates.
+- `get_legal_moves(color, board)` returns legal moves for a colour and board.
+- `preview_move(color, board, move)` returns the board after a legal move.
 - Return `(row, col)` to play, or `None` to pass.
 - Returning an illegal move, raising an exception, or returning malformed data
   forfeits the game as a player error.

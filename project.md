@@ -200,7 +200,7 @@ def version():
     return "1.0"
 
 
-def select_move(color, board, legal_moves, preview_move):
+def select_move(color, board, preview_move, get_legal_moves):
     ...
 ```
 
@@ -218,7 +218,7 @@ Returns the display name of the player.
 Returns the version number of the player. This should be changed whenever the
 player logic changes.
 
-`select_move(color, board, legal_moves, preview_move)`
+`select_move(color, board, preview_move, get_legal_moves)`
 
 Called once for each turn.
 
@@ -228,9 +228,10 @@ Arguments:
   for black.
 - `board`: the current board as an immutable matrix from the player's point of
   view.
-- `legal_moves`: a list of legal moves. Each move is a `(row, col)` tuple.
 - `preview_move`: a helper function that returns the board that would result
   from making a given legal move.
+- `get_legal_moves`: a helper function that returns legal moves for a colour
+  and board.
 
 Return value:
 
@@ -257,19 +258,29 @@ board = (
 )
 ```
 
-### Helper Function
+### Helper Functions
 
-The backend provides a helper function called `preview_move` that lets a player
-preview a move.
+The backend provides helper functions that let a player inspect possible moves
+without mutating the real game.
 
-The helper takes a move coordinate and returns the resulting board state as if
-the player had made that move:
+`get_legal_moves(color, board)`
+
+Returns a tuple of legal `(row, col)` moves for the supplied colour and board.
 
 ```python
-new_board = preview_move((3, 4))
+legal_moves = get_legal_moves(color, board)
 ```
 
-Calling the helper does not count as the player's turn.
+`preview_move(color, board, move)`
+
+Returns the resulting board state as if the supplied colour had made the move on
+the supplied board:
+
+```python
+new_board = preview_move(color, board, (3, 4))
+```
+
+Calling these helpers does not count as the player's turn.
 
 Helper calls should still be part of the player's turn execution, so excessive
 or broken helper use can still cause the player's turn to fail if the backend
@@ -291,7 +302,9 @@ def version():
     return "1.0"
 
 
-def select_move(color, board, legal_moves, preview_move):
+def select_move(color, board, preview_move, get_legal_moves):
+    legal_moves = get_legal_moves(color, board)
+
     if not legal_moves:
         return None
 
