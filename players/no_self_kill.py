@@ -1,5 +1,5 @@
 def name():
-    return "First Capture Player"
+    return "No Self Kill Player"
 
 
 def version():
@@ -9,14 +9,13 @@ def version():
 def select_move(color, board, legal_moves, preview_move):
     opponent = 1 if color == 2 else 2
 
-    my_moves = legal_moves[]
-
     for move in legal_moves:
         next_board = preview_move(move)
         if count_color(next_board, color) < count_color(board, color):
             pass
-        else count_color(next_board, opponent) < count_color(board, opponent):
-            return move
+        else:
+            if count_color(next_board, opponent) < count_color(board, opponent):
+                return move
 
     if legal_moves:
         return legal_moves[0]
