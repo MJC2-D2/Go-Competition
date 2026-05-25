@@ -38,6 +38,9 @@ def build_league(games):
     k_factor = 32
 
     for game in sorted(games, key=lambda item: item["created_at"]):
+        if player_key(game["black_player"]) == player_key(game["white_player"]):
+            continue
+
         black = ensure_record(records, game["black_player"])
         white = ensure_record(records, game["white_player"])
 
