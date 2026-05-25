@@ -57,28 +57,29 @@ python3 -m unittest
 
 ## Add A Player
 
-Create a new `.py` file in `players/`. Each player must provide these functions:
+Create a new `.py` file in `players/`. Each player must provide a `Player`
+class:
 
 ```python
-def name():
-    return "My Player"
+class Player:
+    def name(self):
+        return "My Player"
 
+    def version(self):
+        return "1.0"
 
-def version():
-    return "1.0"
+    def select_move(self, color, board, preview_move, get_legal_moves):
+        legal_moves = get_legal_moves(color, board)
 
+        if not legal_moves:
+            return None
 
-def select_move(color, board, preview_move, get_legal_moves):
-    legal_moves = get_legal_moves(color, board)
-
-    if not legal_moves:
-        return None
-
-    return legal_moves[0]
+        return legal_moves[0]
 ```
 
 Rules for player code:
 
+- The backend creates a new `Player()` instance for each side of each game.
 - `color` is `1` for white and `2` for black.
 - `board` is an immutable tuple of tuples.
 - Empty points are `0`, white stones are `1`, and black stones are `2`.

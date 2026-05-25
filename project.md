@@ -189,36 +189,42 @@ A game can end with:
 Player code is implemented as a Python module placed in the known players
 directory.
 
-Each player module should provide:
+Each player module should provide a `Player` class:
 
 ```python
-def name():
-    return "My Player"
+class Player:
+    def __init__(self):
+        self.moves_seen = 0
 
+    def name(self):
+        return "My Player"
 
-def version():
-    return "1.0"
+    def version(self):
+        return "1.0"
 
+    def select_move(self, color, board, preview_move, get_legal_moves):
+        self.moves_seen += 1
+        ...
 
-def select_move(color, board, preview_move, get_legal_moves):
-    ...
 ```
 
-This deliberately uses simple Python functions rather than classes, because that
-is easier for new Python programmers to understand.
+The backend creates a fresh `Player()` instance for each side of each game. If
+the same player is selected for both colours, black and white receive separate
+instances. This lets players carry per-game state without leaking state across
+games or colour roles.
 
 ### Player API
 
-`name()`
+`Player.name()`
 
 Returns the display name of the player.
 
-`version()`
+`Player.version()`
 
 Returns the version number of the player. This should be changed whenever the
 player logic changes.
 
-`select_move(color, board, preview_move, get_legal_moves)`
+`Player.select_move(color, board, preview_move, get_legal_moves)`
 
 Called once for each turn.
 
@@ -294,21 +300,20 @@ This player chooses a random legal move. If there are no legal moves, it passes.
 import random
 
 
-def name():
-    return "Random Player"
+class Player:
+    def name(self):
+        return "Random Player"
 
+    def version(self):
+        return "1.0"
 
-def version():
-    return "1.0"
+    def select_move(self, color, board, preview_move, get_legal_moves):
+        legal_moves = get_legal_moves(color, board)
 
+        if not legal_moves:
+            return None
 
-def select_move(color, board, preview_move, get_legal_moves):
-    legal_moves = get_legal_moves(color, board)
-
-    if not legal_moves:
-        return None
-
-    return random.choice(legal_moves)
+        return random.choice(legal_moves)
 ```
 
 ## Player Errors
@@ -323,7 +328,7 @@ Player errors include:
 - Returning an illegal move.
 - Returning malformed data.
 - Raising an exception.
-- Failing to provide the required functions.
+- Failing to provide the required `Player` class or methods.
 - Returning a duplicate or invalid player name.
 - Mutating data if mutable data is ever accidentally exposed.
 - Timing out, if time limits are added later.

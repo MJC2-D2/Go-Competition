@@ -8,7 +8,7 @@ class LoadedPlayer:
     id: str
     name: str
     version: str
-    module: object
+    instance: object
 
 
 class PlayerLoadError(Exception):
@@ -83,13 +83,22 @@ class PlayerLoader:
         except Exception as exc:
             raise PlayerLoadError(f"Player import failed: {exc}") from exc
 
-        for function_name in ("name", "version", "select_move"):
-            if not callable(getattr(module, function_name, None)):
-                raise PlayerLoadError(f"Missing required function: {function_name}()")
+        player_class = getattr(module, "Player", None)
+        if not callable(player_class):
+            raise PlayerLoadError("Missing required class: Player")
 
         try:
-            name = module.name()
-            version = module.version()
+            instance = player_class()
+        except Exception as exc:
+            raise PlayerLoadError(f"Player instantiation failed: {exc}") from exc
+
+        for method_name in ("name", "version", "select_move"):
+            if not callable(getattr(instance, method_name, None)):
+                raise PlayerLoadError(f"Missing required method: Player.{method_name}()")
+
+        try:
+            name = instance.name()
+            version = instance.version()
         except Exception as exc:
             raise PlayerLoadError(f"Player metadata failed: {exc}") from exc
 
@@ -98,4 +107,4 @@ class PlayerLoader:
         if not isinstance(version, str) or not version.strip():
             raise PlayerLoadError("Player version must be a non-empty string.")
 
-        return LoadedPlayer(player_id, name.strip(), version.strip(), module)
+        return LoadedPlayer(player_id, name.strip(), version.strip(), instance)

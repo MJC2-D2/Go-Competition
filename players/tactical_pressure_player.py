@@ -1,63 +1,62 @@
-def name():
-    return "Tactical Pressure Player"
+class Player:
+    def name(self):
+        return "Tactical Pressure Player"
 
+    def version(self):
+        return "1.0"
 
-def version():
-    return "1.0"
+    def select_move(self, color, board, preview_move, get_legal_moves):
+        opponent = 1 if color == 2 else 2
+        legal_moves = get_legal_moves(color, board)
+        if not legal_moves:
+            return None
 
+        size = len(board)
+        center = (size - 1) / 2.0
+        board_own_count = count_color(board, color)
+        board_opp_count = count_color(board, opponent)
 
-def select_move(color, board, preview_move, get_legal_moves):
-    opponent = 1 if color == 2 else 2
-    legal_moves = get_legal_moves(color, board)
-    if not legal_moves:
-        return None
+        best_move = None
+        best_score = None
 
-    size = len(board)
-    center = (size - 1) / 2.0
-    board_own_count = count_color(board, color)
-    board_opp_count = count_color(board, opponent)
+        for move in legal_moves:
+            next_board = preview_move(color, board, move)
 
-    best_move = None
-    best_score = None
+            own_gain = count_color(next_board, color) - board_own_count
+            opp_loss = board_opp_count - count_color(next_board, opponent)
 
-    for move in legal_moves:
-        next_board = preview_move(color, board, move)
+            own_group = collect_group(next_board, move)
+            own_liberties = count_liberties(next_board, own_group)
 
-        own_gain = count_color(next_board, color) - board_own_count
-        opp_loss = board_opp_count - count_color(next_board, opponent)
+            score = 0.0
 
-        own_group = collect_group(next_board, move)
-        own_liberties = count_liberties(next_board, own_group)
+            # Captures are the strongest local tactical signal.
+            score += opp_loss * 30.0
 
-        score = 0.0
+            # Prefer healthy groups and avoid one-liberty self-atari shapes.
+            score += own_liberties * 3.0
+            if own_liberties == 1 and opp_loss == 0:
+                score -= 40.0
 
-        # Captures are the strongest local tactical signal.
-        score += opp_loss * 30.0
+            # Larger secure group growth is usually better than tiny additions.
+            score += max(0, own_gain - 1) * 2.5
 
-        # Prefer healthy groups and avoid one-liberty self-atari shapes.
-        score += own_liberties * 3.0
-        if own_liberties == 1 and opp_loss == 0:
-            score -= 40.0
+            # Encourage local pressure around adjacent enemy groups.
+            score += adjacent_attack_pressure(next_board, move, opponent)
 
-        # Larger secure group growth is usually better than tiny additions.
-        score += max(0, own_gain - 1) * 2.5
+            # Prefer central development in the opening and midgame.
+            distance = abs(move[0] - center) + abs(move[1] - center)
+            score += max(0.0, 8.0 - distance) * 0.3
 
-        # Encourage local pressure around adjacent enemy groups.
-        score += adjacent_attack_pressure(next_board, move, opponent)
+            # Avoid filling likely own eyes unless it captures.
+            if opp_loss == 0 and looks_like_own_eye(board, move, color):
+                score -= 15.0
 
-        # Prefer central development in the opening and midgame.
-        distance = abs(move[0] - center) + abs(move[1] - center)
-        score += max(0.0, 8.0 - distance) * 0.3
+            if best_score is None or score > best_score:
+                best_score = score
+                best_move = move
 
-        # Avoid filling likely own eyes unless it captures.
-        if opp_loss == 0 and looks_like_own_eye(board, move, color):
-            score -= 15.0
-
-        if best_score is None or score > best_score:
-            best_score = score
-            best_move = move
-
-    return best_move
+        return best_move
 
 
 def count_color(board, color):

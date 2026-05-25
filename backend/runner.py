@@ -59,7 +59,7 @@ class GameRunner:
                 return preview_board
 
             try:
-                selected_move = player.module.select_move(
+                selected_move = player.instance.select_move(
                     color,
                     board,
                     preview_move,
