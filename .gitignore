@@ -7,6 +7,4 @@ frontend/dist/
 
 data/games/
 
-players/tactical_pressure_player.py
-
 .DS_Store
